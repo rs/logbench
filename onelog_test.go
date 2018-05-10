@@ -53,7 +53,7 @@ func (t onelogTester) withContext(context map[string]interface{}) (logTester, bo
 			case string:
 				e.String(k, v)
 			case error:
-				e.String(k, v.Error())
+				e.Err(k, v)
 			case time.Time:
 				e.Int64(k, v.Unix())
 			case *obj:
@@ -101,7 +101,7 @@ func (t onelogTester) logDuration(msg, key string, value time.Duration) bool {
 
 func (t onelogTester) logError(msg, key string, value error) bool {
 	t.l.InfoWithFields(msg, func(e onelog.Entry) {
-		e.Error(key, value)
+		e.Err(key, value)
 	})
 	return true
 }
