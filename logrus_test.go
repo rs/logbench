@@ -88,15 +88,6 @@ func (t logrusTester) logString(msg, key string, value string) bool {
 	return true
 }
 
-func (t logrusTester) logBytes(msg, key string, value []byte) bool {
-	t.l.WithFields(logrus.Fields{key: value}).Info(msg)
-	return true
-}
-
-func (t logrusTester) logHex(msg, key string, value []byte) bool {
-	return false
-}
-
 func (t logrusTester) logObject(msg, key string, value *obj) bool {
 	t.l.WithFields(logrus.Fields{key: value}).Info(msg)
 	return true

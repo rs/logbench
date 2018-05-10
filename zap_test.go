@@ -124,15 +124,6 @@ func (t zapTester) logString(msg, key string, value string) bool {
 	return true
 }
 
-func (t zapTester) logBytes(msg, key string, value []byte) bool {
-	t.l.Info(msg, zap.ByteString(key, value))
-	return true
-}
-
-func (t zapTester) logHex(msg, key string, value []byte) bool {
-	return false
-}
-
 func (t zapTester) logObject(msg, key string, value *obj) bool {
 	t.l.Info(msg, zap.Object(key, value))
 	return true

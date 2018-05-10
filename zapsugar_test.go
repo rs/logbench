@@ -106,15 +106,6 @@ func (t zapSugarTester) logString(msg, key string, value string) bool {
 	return true
 }
 
-func (t zapSugarTester) logBytes(msg, key string, value []byte) bool {
-	t.l.Infow(msg, key, value)
-	return true
-}
-
-func (t zapSugarTester) logHex(msg, key string, value []byte) bool {
-	return false
-}
-
 func (t zapSugarTester) logObject(msg, key string, value *obj) bool {
 	t.l.Infow(msg, key, value)
 	return true

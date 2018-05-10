@@ -90,16 +90,6 @@ func (t zerologTester) logString(msg, key string, value string) bool {
 	return true
 }
 
-func (t zerologTester) logBytes(msg, key string, value []byte) bool {
-	t.l.Info().Bytes(key, value).Msg(msg)
-	return true
-}
-
-func (t zerologTester) logHex(msg, key string, value []byte) bool {
-	t.l.Info().Hex(key, value).Msg(msg)
-	return true
-}
-
 func (t zerologTester) logObject(msg, key string, value *obj) bool {
 	t.l.Info().Object(key, value).Msg(msg)
 	return true

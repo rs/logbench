@@ -30,8 +30,6 @@ type logTester interface {
 	logDuration(msg, key string, value time.Duration) bool
 	logError(msg, key string, value error) bool
 	logString(msg, key string, value string) bool
-	logBytes(msg, key string, value []byte) bool
-	logHex(msg, key string, value []byte) bool
 	logObject(msg, key string, value *obj) bool
 }
 
@@ -107,12 +105,10 @@ var (
 		&obj{"i", 9, true},
 		&obj{"j", 0, false},
 	}
-
-	sampleMsg        = "Test logging, but use a somewhat realistic message length."
+	sampleString     = "some string with \"special ❤️ chars\" and somewhat realistic length"
 	sampleFormat     = "Test format %d %f %s"
-	sampleFormatArgs = []interface{}{1, 1.0, "some string"}
-
-	sampleContext = map[string]interface{}{
+	sampleFormatArgs = []interface{}{1, 1.0, sampleString}
+	sampleContext    = map[string]interface{}{
 		"ctx_int":    sampleInts[0],
 		"ctx_string": sampleStrings[0],
 		"ctx_error":  sampleErrors[0],
@@ -123,7 +119,7 @@ var (
 func fakeStrings(n int) []string {
 	strs := make([]string, n)
 	for i := range strs {
-		strs[i] = fmt.Sprintf("sample string %d", i)
+		strs[i] = fmt.Sprintf("%s %d", sampleString, i)
 	}
 	return strs
 }
@@ -166,7 +162,7 @@ func benchmark(b *testing.B, l logTester) {
 	b.Run("Msg", func(b *testing.B) {
 		b.RunParallel(func(pb *testing.PB) {
 			for pb.Next() {
-				l.logMsg(sampleMsg)
+				l.logMsg(sampleString)
 			}
 		})
 	})
@@ -186,91 +182,91 @@ func benchmark(b *testing.B, l logTester) {
 
 func benchmarkFields(b *testing.B, l logTester) {
 	bs := map[string]func(){}
-	if l.logBool(sampleMsg, "bool", sampleBools[0]) {
+	if l.logBool(sampleString, "bool", sampleBools[0]) {
 		bs["Bool"] = func() {
-			l.logBool(sampleMsg, "bool", sampleBools[0])
+			l.logBool(sampleString, "bool", sampleBools[0])
 		}
 	}
-	if l.logInt(sampleMsg, "int", sampleInts[0]) {
+	if l.logInt(sampleString, "int", sampleInts[0]) {
 		bs["Int"] = func() {
-			l.logInt(sampleMsg, "int", sampleInts[0])
+			l.logInt(sampleString, "int", sampleInts[0])
 		}
 	}
-	if l.logFloat32(sampleMsg, "float32", sampleFloats32[0]) {
+	if l.logFloat32(sampleString, "float32", sampleFloats32[0]) {
 		bs["Float32"] = func() {
-			l.logFloat32(sampleMsg, "float32", sampleFloats32[0])
+			l.logFloat32(sampleString, "float32", sampleFloats32[0])
 		}
 	}
-	if l.logFloat64(sampleMsg, "float64", sampleFloats64[0]) {
+	if l.logFloat64(sampleString, "float64", sampleFloats64[0]) {
 		bs["Float64"] = func() {
-			l.logFloat64(sampleMsg, "float64", sampleFloats64[0])
+			l.logFloat64(sampleString, "float64", sampleFloats64[0])
 		}
 	}
-	if l.logTime(sampleMsg, "time", sampleTimes[0]) {
+	if l.logTime(sampleString, "time", sampleTimes[0]) {
 		bs["Time"] = func() {
-			l.logTime(sampleMsg, "time", sampleTimes[0])
+			l.logTime(sampleString, "time", sampleTimes[0])
 		}
 	}
-	if l.logDuration(sampleMsg, "duration", sampleDurations[0]) {
+	if l.logDuration(sampleString, "duration", sampleDurations[0]) {
 		bs["Time"] = func() {
-			l.logDuration(sampleMsg, "duration", sampleDurations[0])
+			l.logDuration(sampleString, "duration", sampleDurations[0])
 		}
 	}
-	if l.logString(sampleMsg, "string", sampleStrings[0]) {
+	if l.logString(sampleString, "string", sampleStrings[0]) {
 		bs["String"] = func() {
-			l.logString(sampleMsg, "string", sampleStrings[0])
+			l.logString(sampleString, "string", sampleStrings[0])
 		}
 	}
-	if l.logError(sampleMsg, "error", sampleErrors[0]) {
+	if l.logError(sampleString, "error", sampleErrors[0]) {
 		bs["Error"] = func() {
-			l.logError(sampleMsg, "error", sampleErrors[0])
+			l.logError(sampleString, "error", sampleErrors[0])
 		}
 	}
-	if l.logObject(sampleMsg, "object", sampleObjects[0]) {
+	if l.logObject(sampleString, "object", sampleObjects[0]) {
 		bs["Object"] = func() {
-			l.logObject(sampleMsg, "object", sampleObjects[0])
+			l.logObject(sampleString, "object", sampleObjects[0])
 		}
 	}
 
 	if l, ok := l.(logTesterArray); ok {
-		if l.logBools(sampleMsg, "bools", sampleBools) {
+		if l.logBools(sampleString, "bools", sampleBools) {
 			bs["Bools"] = func() {
-				l.logBools(sampleMsg, "bools", sampleBools)
+				l.logBools(sampleString, "bools", sampleBools)
 			}
 		}
-		if l.logInts(sampleMsg, "ints", sampleInts) {
+		if l.logInts(sampleString, "ints", sampleInts) {
 			bs["Ints"] = func() {
-				l.logInts(sampleMsg, "ints", sampleInts)
+				l.logInts(sampleString, "ints", sampleInts)
 			}
 		}
-		if l.logFloats32(sampleMsg, "floats32", sampleFloats32) {
+		if l.logFloats32(sampleString, "floats32", sampleFloats32) {
 			bs["Floats32"] = func() {
-				l.logFloats32(sampleMsg, "floats32", sampleFloats32)
+				l.logFloats32(sampleString, "floats32", sampleFloats32)
 			}
 		}
-		if l.logFloats64(sampleMsg, "floats64", sampleFloats64) {
+		if l.logFloats64(sampleString, "floats64", sampleFloats64) {
 			bs["Floats64"] = func() {
-				l.logFloats64(sampleMsg, "floats64", sampleFloats64)
+				l.logFloats64(sampleString, "floats64", sampleFloats64)
 			}
 		}
-		if l.logTimes(sampleMsg, "time", sampleTimes) {
+		if l.logTimes(sampleString, "time", sampleTimes) {
 			bs["Time"] = func() {
-				l.logTimes(sampleMsg, "time", sampleTimes)
+				l.logTimes(sampleString, "time", sampleTimes)
 			}
 		}
-		if l.logDurations(sampleMsg, "duration", sampleDurations) {
+		if l.logDurations(sampleString, "duration", sampleDurations) {
 			bs["Time"] = func() {
-				l.logDurations(sampleMsg, "duration", sampleDurations)
+				l.logDurations(sampleString, "duration", sampleDurations)
 			}
 		}
-		if l.logStrings(sampleMsg, "strings", sampleStrings) {
+		if l.logStrings(sampleString, "strings", sampleStrings) {
 			bs["Strings"] = func() {
-				l.logStrings(sampleMsg, "strings", sampleStrings)
+				l.logStrings(sampleString, "strings", sampleStrings)
 			}
 		}
-		if l.logErrors(sampleMsg, "errors", sampleErrors) {
+		if l.logErrors(sampleString, "errors", sampleErrors) {
 			bs["Errors"] = func() {
-				l.logErrors(sampleMsg, "errors", sampleErrors)
+				l.logErrors(sampleString, "errors", sampleErrors)
 			}
 		}
 	}
@@ -333,8 +329,8 @@ func testContext(t *testing.T, ctx *testCtx) {
 }
 
 func test(t *testing.T, ctx *testCtx) {
-	ctx.tester.logMsg(sampleMsg)
-	validate(t, ctx, "Msg", true, map[string]interface{}{"message": sampleMsg})
+	ctx.tester.logMsg(sampleString)
+	validate(t, ctx, "Msg", true, map[string]interface{}{"message": sampleString})
 	validate(t, ctx, "Formatting",
 		ctx.tester.logFormat(sampleFormat, sampleFormatArgs...),
 		map[string]interface{}{"message": fmt.Sprintf(sampleFormat, sampleFormatArgs...)})
@@ -346,58 +342,58 @@ func test(t *testing.T, ctx *testCtx) {
 func testFields(t *testing.T, ctx *testCtx) {
 	l := ctx.tester
 	validate(t, ctx, "Bool",
-		l.logBool(sampleMsg, "bool", sampleBools[0]),
-		map[string]interface{}{"message": sampleMsg, "bool": sampleBools[0]})
+		l.logBool(sampleString, "bool", sampleBools[0]),
+		map[string]interface{}{"message": sampleString, "bool": sampleBools[0]})
 	validate(t, ctx, "Int",
-		l.logInt(sampleMsg, "int", sampleInts[0]),
-		map[string]interface{}{"message": sampleMsg, "int": sampleInts[0]})
+		l.logInt(sampleString, "int", sampleInts[0]),
+		map[string]interface{}{"message": sampleString, "int": sampleInts[0]})
 	validate(t, ctx, "Float32",
-		l.logFloat32(sampleMsg, "float32", sampleFloats32[0]),
-		map[string]interface{}{"message": sampleMsg, "float32": sampleFloats32[0]})
+		l.logFloat32(sampleString, "float32", sampleFloats32[0]),
+		map[string]interface{}{"message": sampleString, "float32": sampleFloats32[0]})
 	validate(t, ctx, "Float64",
-		l.logFloat64(sampleMsg, "float64", sampleFloats64[0]),
-		map[string]interface{}{"message": sampleMsg, "float64": sampleFloats64[0]})
+		l.logFloat64(sampleString, "float64", sampleFloats64[0]),
+		map[string]interface{}{"message": sampleString, "float64": sampleFloats64[0]})
 	validate(t, ctx, "Time",
-		l.logTime(sampleMsg, "time", sampleTimes[0]),
-		map[string]interface{}{"message": sampleMsg, "time": sampleTimes[0]})
+		l.logTime(sampleString, "time", sampleTimes[0]),
+		map[string]interface{}{"message": sampleString, "time": sampleTimes[0]})
 	validate(t, ctx, "Duration",
-		l.logDuration(sampleMsg, "duration", sampleDurations[0]),
-		map[string]interface{}{"message": sampleMsg, "duration": sampleDurations[0]})
+		l.logDuration(sampleString, "duration", sampleDurations[0]),
+		map[string]interface{}{"message": sampleString, "duration": sampleDurations[0]})
 	validate(t, ctx, "String",
-		l.logString(sampleMsg, "string", sampleStrings[0]),
-		map[string]interface{}{"message": sampleMsg, "string": sampleStrings[0]})
+		l.logString(sampleString, "string", sampleStrings[0]),
+		map[string]interface{}{"message": sampleString, "string": sampleStrings[0]})
 	validate(t, ctx, "Error",
-		l.logError(sampleMsg, "error", sampleErrors[0]),
-		map[string]interface{}{"message": sampleMsg, "error": sampleErrors[0]})
+		l.logError(sampleString, "error", sampleErrors[0]),
+		map[string]interface{}{"message": sampleString, "error": sampleErrors[0]})
 	validate(t, ctx, "Object",
-		l.logObject(sampleMsg, "object", sampleObjects[0]),
-		map[string]interface{}{"message": sampleMsg, "object": sampleObjects[0]})
+		l.logObject(sampleString, "object", sampleObjects[0]),
+		map[string]interface{}{"message": sampleString, "object": sampleObjects[0]})
 
 	if l, ok := l.(logTesterArray); ok {
 		validate(t, ctx, "Bools",
-			l.logBools(sampleMsg, "bools", sampleBools),
-			map[string]interface{}{"message": sampleMsg, "bools": sampleBools})
+			l.logBools(sampleString, "bools", sampleBools),
+			map[string]interface{}{"message": sampleString, "bools": sampleBools})
 		validate(t, ctx, "Ints",
-			l.logInts(sampleMsg, "ints", sampleInts),
-			map[string]interface{}{"message": sampleMsg, "ints": sampleInts})
+			l.logInts(sampleString, "ints", sampleInts),
+			map[string]interface{}{"message": sampleString, "ints": sampleInts})
 		validate(t, ctx, "Floats32",
-			l.logFloats32(sampleMsg, "floats32", sampleFloats32),
-			map[string]interface{}{"message": sampleMsg, "floats32": sampleFloats32})
+			l.logFloats32(sampleString, "floats32", sampleFloats32),
+			map[string]interface{}{"message": sampleString, "floats32": sampleFloats32})
 		validate(t, ctx, "Floats64",
-			l.logFloats64(sampleMsg, "floats64", sampleFloats64),
-			map[string]interface{}{"message": sampleMsg, "floats64": sampleFloats64})
+			l.logFloats64(sampleString, "floats64", sampleFloats64),
+			map[string]interface{}{"message": sampleString, "floats64": sampleFloats64})
 		validate(t, ctx, "Times",
-			l.logTimes(sampleMsg, "time", sampleTimes),
-			map[string]interface{}{"message": sampleMsg, "time": sampleTimes})
+			l.logTimes(sampleString, "time", sampleTimes),
+			map[string]interface{}{"message": sampleString, "time": sampleTimes})
 		validate(t, ctx, "Durations",
-			l.logDurations(sampleMsg, "duration", sampleDurations),
-			map[string]interface{}{"message": sampleMsg, "duration": sampleDurations})
+			l.logDurations(sampleString, "duration", sampleDurations),
+			map[string]interface{}{"message": sampleString, "duration": sampleDurations})
 		validate(t, ctx, "Strings",
-			l.logStrings(sampleMsg, "strings", sampleStrings),
-			map[string]interface{}{"message": sampleMsg, "strings": sampleStrings})
+			l.logStrings(sampleString, "strings", sampleStrings),
+			map[string]interface{}{"message": sampleString, "strings": sampleStrings})
 		validate(t, ctx, "Errors",
-			l.logErrors(sampleMsg, "errors", sampleErrors),
-			map[string]interface{}{"message": sampleMsg, "errors": sampleErrors})
+			l.logErrors(sampleString, "errors", sampleErrors),
+			map[string]interface{}{"message": sampleString, "errors": sampleErrors})
 	}
 }
 

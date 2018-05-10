@@ -112,14 +112,6 @@ func (t onelogTester) logString(msg, key string, value string) bool {
 	return true
 }
 
-func (t onelogTester) logBytes(msg, key string, value []byte) bool {
-	return false
-}
-
-func (t onelogTester) logHex(msg, key string, value []byte) bool {
-	return false
-}
-
 func (t onelogTester) logObject(msg, key string, value *obj) bool {
 	t.l.InfoWithFields(msg, func(e onelog.Entry) {
 		e.Object(key, value)
