@@ -18,7 +18,6 @@ func init() {
 func (o obj) MarshalZerologObject(e *zerolog.Event) {
 	e.Str("name", o.Name).
 		Int("count", o.Count).
-		Int64("created", o.Created.Unix()).
 		Bool("enabled", o.Enabled)
 }
 

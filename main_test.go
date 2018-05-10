@@ -49,17 +49,15 @@ type logTesterArray interface {
 var tests = map[string]tester{}
 
 type obj struct {
-	Name    string    `json:"name"`
-	Count   int       `json:"count"`
-	Created time.Time `json:"created"`
-	Enabled bool      `json:"enabled"`
+	Name    string `json:"name"`
+	Count   int    `json:"count"`
+	Enabled bool   `json:"enabled"`
 }
 
 func (o obj) jsonMap() map[string]interface{} {
 	return map[string]interface{}{
 		"name":    o.Name,
 		"count":   o.Count,
-		"created": o.Created.Unix(),
 		"enabled": o.Enabled,
 	}
 }
@@ -98,16 +96,16 @@ var (
 		9 * time.Millisecond,
 	}
 	sampleObjects = objs{
-		&obj{"a", 1, time.Unix(0, 0), true},
-		&obj{"b", 2, time.Unix(1, 0), false},
-		&obj{"c", 3, time.Unix(2, 0), true},
-		&obj{"d", 4, time.Unix(3, 0), false},
-		&obj{"e", 5, time.Unix(4, 0), true},
-		&obj{"f", 6, time.Unix(5, 0), false},
-		&obj{"g", 7, time.Unix(6, 0), true},
-		&obj{"h", 8, time.Unix(7, 0), false},
-		&obj{"i", 9, time.Unix(8, 0), true},
-		&obj{"j", 0, time.Unix(9, 0), false},
+		&obj{"a", 1, true},
+		&obj{"b", 2, false},
+		&obj{"c", 3, true},
+		&obj{"d", 4, false},
+		&obj{"e", 5, true},
+		&obj{"f", 6, false},
+		&obj{"g", 7, true},
+		&obj{"h", 8, false},
+		&obj{"i", 9, true},
+		&obj{"j", 0, false},
 	}
 
 	sampleMsg        = "Test logging, but use a somewhat realistic message length."
@@ -116,7 +114,6 @@ var (
 
 	sampleContext = map[string]interface{}{
 		"ctx_int":    sampleInts[0],
-		"ctx_time":   sampleTimes[0],
 		"ctx_string": sampleStrings[0],
 		"ctx_error":  sampleErrors[0],
 		"ctx_object": sampleObjects[0],

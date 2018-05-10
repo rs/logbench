@@ -16,7 +16,6 @@ func init() {
 func (o obj) MarshalObject(enc *gojay.Encoder) {
 	enc.AddStringKey("name", o.Name)
 	enc.AddIntKey("count", o.Count)
-	enc.AddIntKey("created", int(o.Created.Unix()))
 	enc.AddBoolKey("enabled", o.Enabled)
 }
 
@@ -101,7 +100,7 @@ func (t onelogTester) logDuration(msg, key string, value time.Duration) bool {
 
 func (t onelogTester) logError(msg, key string, value error) bool {
 	t.l.InfoWithFields(msg, func(e onelog.Entry) {
-		e.Error(key, value)
+		e.Err(key, value)
 	})
 	return true
 }

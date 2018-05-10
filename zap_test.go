@@ -18,7 +18,6 @@ func init() {
 func (o *obj) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("name", o.Name)
 	enc.AddInt("count", o.Count)
-	enc.AddTime("created", o.Created)
 	enc.AddBool("enabled", o.Enabled)
 	return nil
 }
