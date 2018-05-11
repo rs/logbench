@@ -13,7 +13,7 @@ import (
 
 func main() {
 	libs := map[string]struct{}{}
-	report := map[string]map[string]*benchstat.Row{}
+	report := map[string]map[string]map[string]*benchstat.Row{}
 
 	c := &benchstat.Collection{}
 	data, err := ioutil.ReadAll(os.Stdin)
@@ -28,14 +28,21 @@ func main() {
 			log.Fatalf("invalid benchmark name: %s", row.Benchmark)
 		}
 		lib := row.Benchmark[1 : idx+1]
-		bench := row.Benchmark[idx+2:]
 		libs[lib] = struct{}{}
-		m := report[bench]
-		if m == nil {
-			m = map[string]*benchstat.Row{}
-			report[bench] = m
+		gidx := strings.LastIndexByte(row.Benchmark, '/')
+		group := row.Benchmark[idx+2 : gidx]
+		name := row.Benchmark[gidx+1:]
+		g := report[group]
+		if g == nil {
+			g = map[string]map[string]*benchstat.Row{}
+			report[group] = g
 		}
-		m[lib] = row
+		n := g[name]
+		if n == nil {
+			n = map[string]*benchstat.Row{}
+			g[name] = n
+		}
+		n[lib] = row
 	}
 
 	slibs := []string{}
@@ -43,35 +50,37 @@ func main() {
 		slibs = append(slibs, lib)
 	}
 	sort.Sort(sort.Reverse(sort.StringSlice(slibs)))
-	benchs := []string{}
-	for bench := range report {
-		benchs = append(benchs, bench)
+	groups := []string{}
+	for group := range report {
+		groups = append(groups, group)
 	}
-	sort.Sort(sort.Reverse(sort.StringSlice(benchs)))
+	sort.Sort(sort.Reverse(sort.StringSlice(groups)))
 
-	fmt.Print("| Name")
+	fmt.Print("<table><tr><td><b>Name</b></td>")
 	for _, lib := range slibs {
-		fmt.Printf(" | %s", lib)
+		fmt.Printf("<td><b>%s</b></td>", lib)
 	}
-	fmt.Println(" |")
-	fmt.Println(strings.Repeat("|-", len(libs)+1) + "|")
-	for _, bench := range benchs {
-		results := report[bench]
-		fmt.Printf("| %s", bench)
-		best := bestTime(results)
-		for _, lib := range slibs {
-			if r, found := results[lib]; found {
-				format := " | %s"
-				if lib == best {
-					format = " | &#x1F538; **%s**"
+	fmt.Println("</tr>")
+	for _, group := range groups {
+		fmt.Printf("<tr><td colspan=%d><b>%s</b></td></tr>\n", len(libs)+1, group)
+		for name, results := range report[group] {
+			fmt.Printf("<tr><td>%s</td>", name)
+			best := bestTime(results)
+			for _, lib := range slibs {
+				if r, found := results[lib]; found {
+					format := "<td>%s</td>"
+					if lib == best {
+						format = "<td>&#x1F538; <b>%s</b></td>"
+					}
+					fmt.Printf(format, r.Metrics[0].Format(r.Scaler))
+				} else {
+					fmt.Print("<td>n/a</td>")
 				}
-				fmt.Printf(format, r.Metrics[0].Format(r.Scaler))
-			} else {
-				fmt.Print(" | n/a")
 			}
+			fmt.Println("</tr>")
 		}
-		fmt.Println(" |")
 	}
+	fmt.Println("</table>")
 }
 
 func bestTime(results map[string]*benchstat.Row) string {
