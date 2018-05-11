@@ -1,91 +1,71 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
-	"regexp"
 	"sort"
-	"strconv"
 	"strings"
+
+	"golang.org/x/perf/benchstat"
 )
 
-type result struct {
-	Iter   int
-	Time   float64
-	Bytes  int
-	Allocs int
-}
-
-type results []result
-
-func (rs results) MedianTime() float64 {
-	t := []float64{}
-	for _, r := range rs {
-		t = append(t, r.Time)
-	}
-	sort.Float64s(t)
-	return t[len(t)/2]
-}
-
-var re = regexp.MustCompile(
-	`^Benchmark/([a-zA-Z0-9_-]+)/(.+?)\s+(\d+)\s+([\d.]+) ns/op(?:\s+(\d+) B/op\s+(\d+) allocs/op)?`)
-
 func main() {
-	names := map[string]struct{}{}
-	report := map[string]map[string]results{}
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		line := scanner.Text()
-		sm := re.FindStringSubmatch(line)
-		if sm == nil {
-			continue
-		}
+	libs := map[string]struct{}{}
+	report := map[string]map[string]*benchstat.Row{}
 
-		name := sm[1]
-		names[name] = struct{}{}
-		metric := sm[2]
-		m := report[metric]
+	c := &benchstat.Collection{}
+	data, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		log.Fatal(err)
+	}
+	c.AddConfig("-", data)
+	tables := c.Tables()
+	for _, row := range tables[0].Rows {
+		idx := strings.IndexByte(row.Benchmark[1:], '/')
+		if idx == -1 {
+			log.Fatalf("invalid benchmark name: %s", row.Benchmark)
+		}
+		lib := row.Benchmark[1 : idx+1]
+		bench := row.Benchmark[idx+2:]
+		libs[lib] = struct{}{}
+		m := report[bench]
 		if m == nil {
-			m = map[string]results{}
-			report[metric] = m
+			m = map[string]*benchstat.Row{}
+			report[bench] = m
 		}
-		m[name] = append(m[name], result{
-			Iter:   atoi(sm[3]),
-			Time:   atof(sm[4]),
-			Bytes:  atoi(sm[5]),
-			Allocs: atoi(sm[6]),
-		})
+		m[lib] = row
 	}
 
-	snames := []string{}
-	for name := range names {
-		snames = append(snames, name)
+	slibs := []string{}
+	for lib := range libs {
+		slibs = append(slibs, lib)
 	}
-	sort.Sort(sort.Reverse(sort.StringSlice(snames)))
-	metrics := []string{}
-	for metric := range report {
-		metrics = append(metrics, metric)
+	sort.Sort(sort.Reverse(sort.StringSlice(slibs)))
+	benchs := []string{}
+	for bench := range report {
+		benchs = append(benchs, bench)
 	}
-	sort.Sort(sort.Reverse(sort.StringSlice(metrics)))
+	sort.Sort(sort.Reverse(sort.StringSlice(benchs)))
 
-	fmt.Print("| Metric")
-	for _, name := range snames {
-		fmt.Printf(" | %s", name)
+	fmt.Print("| Name")
+	for _, lib := range slibs {
+		fmt.Printf(" | %s", lib)
 	}
 	fmt.Println(" |")
-	fmt.Println(strings.Repeat("|-", len(names)+1) + "|")
-	for _, metric := range metrics {
-		results := report[metric]
-		fmt.Printf("| %s", metric)
+	fmt.Println(strings.Repeat("|-", len(libs)+1) + "|")
+	for _, bench := range benchs {
+		results := report[bench]
+		fmt.Printf("| %s", bench)
 		best := bestTime(results)
-		for _, name := range snames {
-			if r, found := results[name]; found {
+		for _, lib := range slibs {
+			if r, found := results[lib]; found {
 				format := " | %s"
-				if name == best {
+				if lib == best {
 					format = " | &#x1F538; **%s**"
 				}
-				fmt.Printf(format, strconv.FormatFloat(r.MedianTime(), 'f', -1, 64))
+				fmt.Printf(format, r.Metrics[0].Format(r.Scaler))
 			} else {
 				fmt.Print(" | n/a")
 			}
@@ -94,24 +74,14 @@ func main() {
 	}
 }
 
-func bestTime(results map[string]results) string {
+func bestTime(results map[string]*benchstat.Row) string {
 	var bestName string
-	var bestTime float64 = -1
-	for name, result := range results {
-		if bestTime == -1 || result.MedianTime() < bestTime {
+	var bestRow *benchstat.Metrics
+	for name, row := range results {
+		if bestRow == nil || row.Metrics[0].Mean < bestRow.Mean {
 			bestName = name
-			bestTime = result.MedianTime()
+			bestRow = row.Metrics[0]
 		}
 	}
 	return bestName
-}
-
-func atoi(s string) int {
-	i, _ := strconv.Atoi(s)
-	return i
-}
-
-func atof(s string) float64 {
-	f, _ := strconv.ParseFloat(s, 64)
-	return f
 }

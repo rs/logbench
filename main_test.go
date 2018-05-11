@@ -105,10 +105,11 @@ var (
 		&obj{"i", 9, true},
 		&obj{"j", 0, false},
 	}
-	sampleString     = "some string with \"special ❤️ chars\" and somewhat realistic length"
-	sampleFormat     = "Test format %d %f %s"
-	sampleFormatArgs = []interface{}{1, 1.0, sampleString}
-	sampleContext    = map[string]interface{}{
+	sampleString        = "some string with a somewhat realistic length"
+	sampleStringComplex = "some string with \"special ❤️ chars\" and somewhat realistic length"
+	sampleFormat        = "Test format %d %f %s"
+	sampleFormatArgs    = []interface{}{1, 1.0, sampleString}
+	sampleContext       = map[string]interface{}{
 		"ctx_int":    sampleInts[0],
 		"ctx_string": sampleStrings[0],
 		"ctx_error":  sampleErrors[0],
@@ -163,6 +164,13 @@ func benchmark(b *testing.B, l logTester) {
 		b.RunParallel(func(pb *testing.PB) {
 			for pb.Next() {
 				l.logMsg(sampleString)
+			}
+		})
+	})
+	b.Run("MsgComplex", func(b *testing.B) {
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				l.logMsg(sampleStringComplex)
 			}
 		})
 	})
@@ -331,6 +339,8 @@ func testContext(t *testing.T, ctx *testCtx) {
 func test(t *testing.T, ctx *testCtx) {
 	ctx.tester.logMsg(sampleString)
 	validate(t, ctx, "Msg", true, map[string]interface{}{"message": sampleString})
+	ctx.tester.logMsg(sampleStringComplex)
+	validate(t, ctx, "MsgComplex", true, map[string]interface{}{"message": sampleStringComplex})
 	validate(t, ctx, "Formatting",
 		ctx.tester.logFormat(sampleFormat, sampleFormatArgs...),
 		map[string]interface{}{"message": fmt.Sprintf(sampleFormat, sampleFormatArgs...)})
