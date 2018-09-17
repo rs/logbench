@@ -52,7 +52,7 @@ func (t onelogTester) withContext(context map[string]interface{}) (logTester, bo
 			case string:
 				e.String(k, v)
 			case error:
-				e.String(k, v.Error())
+				e.Err(k, v)
 			case time.Time:
 				e.Int64(k, v.Unix())
 			case *obj:
