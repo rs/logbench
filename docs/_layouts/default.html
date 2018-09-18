@@ -4,8 +4,9 @@
 <head>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.1/fuse.min.js"></script>
     <style>
-        h1, p {
+        * {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-weight: 300;
         }
@@ -13,7 +14,9 @@
 </head>
 
 <body>
-    <a href="{{ site.github.repository_url }}"><img style="position:absolute;z-index:1000;top:0;right:0;border:0;width:149px;height:149px;" src="http://aral.github.com/fork-me-on-github-retina-ribbons/right-red@2x.png" alt="Fork me on GitHub"></a>    <h1>Logbench</h1>
+    <a href="{{ site.github.repository_url }}"><img style="position:absolute;z-index:1000;top:0;right:0;border:0;width:149px;height:149px;"
+            src="http://aral.github.com/fork-me-on-github-retina-ribbons/right-red@2x.png" alt="Fork me on GitHub"></a>
+    <h1>Logbench</h1>
 
     <p>Logbench is comparing benchmark results of popular Golang logging libraries.</p>
 
@@ -21,23 +24,32 @@
         var data = {{ content }};
         var barThickness = 10;
         var chartColors = {
+            blue: 'rgb(54, 162, 235)',
             red: 'rgb(255, 99, 132)',
             orange: 'rgb(255, 159, 64)',
-            yellow: 'rgb(255, 205, 86)',
             green: 'rgb(75, 192, 192)',
-            blue: 'rgb(54, 162, 235)',
+            yellow: 'rgb(255, 205, 86)',
             purple: 'rgb(153, 102, 255)',
             grey: 'rgb(201, 203, 207)'
         };
         var colorNames = Object.keys(chartColors);
-        var ctx = $('<canvas></canvas>').attr("height", (data.labels.length * data.datasets.length * barThickness) + 20 + "px");
+        $('body').append('Filter: ').append($('<input type="text">').on('keyup', function () {
+            var ds = filterDatasets(data, $(this).val());
+            chart.data = ds;
+            resizeWithDataset(ctx, ds);
+            chart.update();
+            chart.resize();
+        }));
+        var ctx = $('<div><canvas>');
         $('body').append(ctx);
+        resizeWithDataset(ctx, data);
         for (var i = 0; i < data.datasets.length; i++) {
             var colorName = colorNames[i % colorNames.length];
             var dsColor = chartColors[colorName];
             data.datasets[i].backgroundColor = Chart.helpers.color(dsColor).alpha(0.5).rgbString();
         }
-        new Chart(ctx, {
+        var dataFilter = '';
+        var chart = new Chart($('canvas', ctx), {
             type: 'horizontalBar',
             data: data,
             options: {
@@ -62,6 +74,41 @@
                 },
             }
         });
+
+        function resizeWithDataset(ctx, ds) {
+            ctx.css("height", (ds.labels.length * ds.datasets.length * barThickness) + 20 + "px");
+        }
+        var options = {
+            threshold: 0.2,
+            location: 0,
+            distance: 100,
+            maxPatternLength: 32,
+            minMatchCharLength: 1,
+        };
+        var fuse = new Fuse(data.labels, options);
+        function filterDatasets(ds, labelFilter) {
+            if (labelFilter == '') {
+                return ds;
+            }
+            var newDs = {
+                labels: [],
+                datasets: [],
+            };
+            for (var i = 0; i < data.datasets.length; i++) {
+                newDs.datasets[i] = {
+                    label: data.datasets[i].label,
+                    backgroundColor: data.datasets[i].backgroundColor,
+                    data: [],
+                };
+            }
+            fuse.search(labelFilter).forEach(function(i) {
+                newDs.labels.push(data.labels[i]);
+                for (var j = 0; j < data.datasets.length; j++) {
+                    newDs.datasets[j].data.push(data.datasets[j].data[i]);
+                }
+            });
+            return newDs;
+        }
     </script>
 </body>
 
