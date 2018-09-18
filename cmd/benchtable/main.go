@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,9 +12,20 @@ import (
 	"golang.org/x/perf/benchstat"
 )
 
+type Chart struct {
+	Labels   []string  `json:"labels"`
+	Datasets []Dataset `json:"datasets"`
+}
+
+type Dataset struct {
+	Label string    `json:"label"`
+	Data  []float64 `json:"data"`
+}
+
 func main() {
 	libs := map[string]struct{}{}
-	report := map[string]map[string]map[string]*benchstat.Row{}
+	// group -> test -> lib
+	report := map[string]map[string]*benchstat.Row{}
 
 	c := &benchstat.Collection{}
 	data, err := ioutil.ReadAll(os.Stdin)
@@ -29,68 +41,43 @@ func main() {
 		}
 		lib := row.Benchmark[1 : idx+1]
 		libs[lib] = struct{}{}
-		gidx := strings.LastIndexByte(row.Benchmark, '/')
-		group := row.Benchmark[idx+2 : gidx]
-		name := row.Benchmark[gidx+1:]
-		g := report[group]
-		if g == nil {
-			g = map[string]map[string]*benchstat.Row{}
-			report[group] = g
-		}
-		n := g[name]
+		name := row.Benchmark[idx+2:]
+		n := report[name]
 		if n == nil {
 			n = map[string]*benchstat.Row{}
-			g[name] = n
+			report[name] = n
 		}
 		n[lib] = row
 	}
 
+	chart := Chart{}
+	for name := range report {
+		chart.Labels = append(chart.Labels, name)
+	}
+	sort.Sort(sort.Reverse(sort.StringSlice(chart.Labels)))
 	slibs := []string{}
 	for lib := range libs {
 		slibs = append(slibs, lib)
 	}
 	sort.Sort(sort.Reverse(sort.StringSlice(slibs)))
-	groups := []string{}
-	for group := range report {
-		groups = append(groups, group)
-	}
-	sort.Sort(sort.Reverse(sort.StringSlice(groups)))
-
-	fmt.Print("<table><tr><td><b>Name</b></td>")
 	for _, lib := range slibs {
-		fmt.Printf("<td><b>%s</b></td>", lib)
+		chart.Datasets = append(chart.Datasets, Dataset{
+			Label: lib,
+			Data:  make([]float64, len(chart.Labels)),
+		})
 	}
-	fmt.Println("</tr>")
-	for _, group := range groups {
-		fmt.Printf("<tr><td colspan=%d><b>%s</b></td></tr>\n", len(libs)+1, group)
-		for name, results := range report[group] {
-			fmt.Printf("<tr><td>%s</td>", name)
-			best := bestTime(results)
-			for _, lib := range slibs {
-				if r, found := results[lib]; found {
-					format := "<td>%s</td>"
-					if lib == best {
-						format = "<td>&#x1F538; <b>%s</b></td>"
-					}
-					fmt.Printf(format, r.Metrics[0].Format(r.Scaler))
-				} else {
-					fmt.Print("<td>n/a</td>")
-				}
+	for i, name := range chart.Labels {
+		results := report[name]
+		for j, ds := range chart.Datasets {
+			if r, found := results[ds.Label]; found {
+				chart.Datasets[j].Data[i] = r.Metrics[0].Mean
 			}
-			fmt.Println("</tr>")
 		}
 	}
-	fmt.Println("</table>")
-}
 
-func bestTime(results map[string]*benchstat.Row) string {
-	var bestName string
-	var bestRow *benchstat.Metrics
-	for name, row := range results {
-		if bestRow == nil || row.Metrics[0].Mean < bestRow.Mean {
-			bestName = name
-			bestRow = row.Metrics[0]
-		}
+	b, err := json.Marshal(chart)
+	if err != nil {
+		panic(err)
 	}
-	return bestName
+	fmt.Println(string(b))
 }

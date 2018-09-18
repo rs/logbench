@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+    <style>
+        h1, p {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-weight: 300;
+        }
+    </style>
+</head>
+
+<body>
+    <a href="{{ site.github.repository_url }}"><img style="position:absolute;z-index:1000;top:0;right:0;border:0;width:149px;height:149px;" src="http://aral.github.com/fork-me-on-github-retina-ribbons/right-red@2x.png" alt="Fork me on GitHub"></a>    <h1>Logbench</h1>
+
+    <p>Logbench is comparing benchmark results of popular Golang logging libraries.</p>
+
+    <script>
+        var data = {{ content }};
+        var barThickness = 10;
+        var chartColors = {
+            red: 'rgb(255, 99, 132)',
+            orange: 'rgb(255, 159, 64)',
+            yellow: 'rgb(255, 205, 86)',
+            green: 'rgb(75, 192, 192)',
+            blue: 'rgb(54, 162, 235)',
+            purple: 'rgb(153, 102, 255)',
+            grey: 'rgb(201, 203, 207)'
+        };
+        var colorNames = Object.keys(chartColors);
+        var ctx = $('<canvas></canvas>').attr("height", (data.labels.length * data.datasets.length * barThickness) + 20 + "px");
+        $('body').append(ctx);
+        for (var i = 0; i < data.datasets.length; i++) {
+            var colorName = colorNames[i % colorNames.length];
+            var dsColor = chartColors[colorName];
+            data.datasets[i].backgroundColor = Chart.helpers.color(dsColor).alpha(0.5).rgbString();
+        }
+        new Chart(ctx, {
+            type: 'horizontalBar',
+            data: data,
+            options: {
+                // Elements options apply to all of the options unless overridden in a dataset
+                // In this case, we are setting the border of each horizontal bar to be 2px wide
+                elements: {
+                    rectangle: {
+                        borderWidth: 2,
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    position: 'top',
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function (tooltipItems, data) {
+                            return data.datasets[tooltipItems.datasetIndex].label + ': ' + (tooltipItems.xLabel ? tooltipItems.xLabel + ' ns/op' : 'n/a');
+                        }
+                    }
+                },
+            }
+        });
+    </script>
+</body>
+
+</html>
