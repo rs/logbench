@@ -10,6 +10,18 @@
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-weight: 300;
         }
+        #filter-form {
+            position: relative;
+            top: 25px;
+            left: 10px;
+        }
+        #filter {
+            height: 1.2em;
+            width: 8em;
+        }
+        #filter:focus {
+            width: 15em;
+        }
     </style>
 </head>
 
@@ -19,6 +31,11 @@
     <h1>Logbench</h1>
 
     <p>Logbench is comparing benchmark results of popular Golang logging libraries.</p>
+
+    <div id="filter-form">
+        <label for="filter">Filter: </label><input id="filter" type="text">
+    </div>
+    <div id="chart"><canvas></canvas></div>
 
     <script>
         var data = {{ content }};
@@ -33,15 +50,14 @@
             grey: 'rgb(201, 203, 207)'
         };
         var colorNames = Object.keys(chartColors);
-        $('body').append('Filter: ').append($('<input type="text">').on('keyup', function () {
+        $('#filter').on('keyup', function () {
             var ds = filterDatasets(data, $(this).val());
             chart.data = ds;
             resizeWithDataset(ctx, ds);
             chart.update();
             chart.resize();
-        }));
-        var ctx = $('<div><canvas>');
-        $('body').append(ctx);
+        });
+        var ctx = $('#chart');
         resizeWithDataset(ctx, data);
         for (var i = 0; i < data.datasets.length; i++) {
             var colorName = colorNames[i % colorNames.length];
@@ -81,8 +97,8 @@
         var options = {
             threshold: 0.2,
             location: 0,
-            distance: 100,
-            maxPatternLength: 32,
+            distance: 200,
+            maxPatternLength: 100,
             minMatchCharLength: 1,
         };
         var fuse = new Fuse(data.labels, options);
