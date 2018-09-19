@@ -14,6 +14,7 @@
             position: relative;
             top: 25px;
             left: 10px;
+            width: 300px;
         }
         #filter {
             height: 1.2em;
@@ -21,6 +22,13 @@
         }
         #filter:focus {
             width: 15em;
+        }
+        #selector-form {
+            position: absolute;
+            right: 20px;
+            width: 100px;
+            z-index: 1000;
+            text-align: right;
         }
     </style>
 </head>
@@ -35,10 +43,19 @@
     <div id="filter-form">
         <label for="filter">Filter: </label><input id="filter" type="text">
     </div>
+    <div id="selector-form">
+        <select>
+            <option value="ns/op">ns/op</option>
+            <option value="B/op">B/op</option>
+            <option value="allocs/op">allocs/op</option>
+        </select>
+    </div>
     <div id="chart"><canvas></canvas></div>
 
     <script>
-        var data = {{ content }};
+        var reports = {{ content }};
+        var unit = "ns/op";
+        var data = reports[unit];
         var barThickness = 10;
         var chartColors = {
             blue: 'rgb(54, 162, 235)',
@@ -50,6 +67,13 @@
             grey: 'rgb(201, 203, 207)'
         };
         var colorNames = Object.keys(chartColors);
+        $('#selector-form select').change(function() {
+            unit = $('option:selected', this).text();
+            data = reports[unit];
+            var ds = filterDatasets(data, $('#filter').val());
+            chart.data = ds;
+            chart.update();
+        });
         $('#filter').on('keyup', function () {
             var ds = filterDatasets(data, $(this).val());
             chart.data = ds;
@@ -59,11 +83,14 @@
         });
         var ctx = $('#chart');
         resizeWithDataset(ctx, data);
-        for (var i = 0; i < data.datasets.length; i++) {
-            var colorName = colorNames[i % colorNames.length];
-            var dsColor = chartColors[colorName];
-            data.datasets[i].backgroundColor = Chart.helpers.color(dsColor).alpha(0.5).rgbString();
-        }
+        Object.keys(reports).forEach(function(unit) {
+            var data = reports[unit];
+            for (var i = 0; i < data.datasets.length; i++) {
+                var colorName = colorNames[i % colorNames.length];
+                var dsColor = chartColors[colorName];
+                data.datasets[i].backgroundColor = Chart.helpers.color(dsColor).alpha(0.5).rgbString();
+            }
+        });
         var dataFilter = '';
         var chart = new Chart($('canvas', ctx), {
             type: 'horizontalBar',
@@ -84,7 +111,7 @@
                 tooltips: {
                     callbacks: {
                         label: function (tooltipItems, data) {
-                            return data.datasets[tooltipItems.datasetIndex].label + ': ' + (tooltipItems.xLabel ? tooltipItems.xLabel + ' ns/op' : 'n/a');
+                            return data.datasets[tooltipItems.datasetIndex].label + ': ' + (isNaN(tooltipItems.xLabel) ? 'n/a' : tooltipItems.xLabel + ' ' + unit);
                         }
                     }
                 },
