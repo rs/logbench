@@ -432,8 +432,15 @@ func validate(t *testing.T, ctx *testCtx, name string, supported bool, want map[
 		if err := json.Unmarshal(ctx.buf.Bytes(), &got); err != nil {
 			t.Fatalf("invalid JSON output: %v: %v", err, ctx.buf.String())
 		}
+
+		// delete timestamp field of loggers that doesn't allow timestamp to be disabled
+		delete(got, "ts")
+
 		if eq, err := checkers.DeepEqual(got, want); !eq {
-			t.Errorf("invalid output: %v\ngot: %s\nwant: %s", err, ctx.buf.String(), wj)
+			// got could be different from ctx.buf due to delete(got, "ts") above
+			g, _ := json.Marshal(got)
+
+			t.Errorf("invalid output: %v\ngot: %s\nwant: %s", err, g, wj)
 		}
 	})
 }
