@@ -3,6 +3,8 @@ module github.com/rs/logbench
 go 1.15
 
 require (
+	github.com/axpira/gop v0.1.1
+	github.com/axpira/goplogjson v0.0.0
 	github.com/bloom42/rz-go v1.3.2
 	github.com/juju/loggo v0.0.0-20190526231331-6e530bcce5d8 // indirect
 	github.com/juju/testing v0.0.0-20190613124551-e81189438503

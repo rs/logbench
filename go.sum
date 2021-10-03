@@ -4,6 +4,10 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/GoogleCloudPlatform/cloudsql-proxy v0.0.0-20190129172621-c8b1d7a94ddf/go.mod h1:aJ4qN3TfrelA6NZ6AXsXRfmEVaYin3EDbSPJrKS8OXo=
 github.com/aclements/go-gg v0.0.0-20170118225347-6dbb4e4fefb0/go.mod h1:55qNq4vcpkIuHowELi5C8e+1yUHtoLoOUR9QU5j7Tes=
 github.com/aclements/go-moremath v0.0.0-20161014184102-0ff62e0875ff/go.mod h1:idZL3yvz4kzx1dsBOAC+oYv6L92P1oFEhUXUB1A/lwQ=
+github.com/axpira/gop v0.1.1 h1:McojhJmlEWkC2x7345eec/WbRa242G2V0mT6XwzQGqs=
+github.com/axpira/gop v0.1.1/go.mod h1:hr0ftV3pB7wfh6CkQjF+xgMHzyMP5C93FK8jjKcAyto=
+github.com/axpira/goplogjson v0.0.0 h1:GUV8Cl249v0PUyq2sMKagAqeeSEIGbqPeer2ED2EWUM=
+github.com/axpira/goplogjson v0.0.0/go.mod h1:sBU8CSLFniMGQawVIdkEs2t3q6CQJzMt8vigZovxVh8=
 github.com/bloom42/rz-go v1.3.2 h1:n9PM9oj6pH4tiAGlW/ZEMBxAOLTO2zUmuIiEo1EzDYo=
 github.com/bloom42/rz-go v1.3.2/go.mod h1:lInmCHznMfuPjfO5fV2bEJHJITxuvzZJdlrzjhK8Bo8=
 github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e/go.mod h1:F5haX7vjVVG0kc13fIWeqUViNPyEJxv/OmvnBo0Yme4=
