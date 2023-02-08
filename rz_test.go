@@ -4,7 +4,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/bloom42/rz-go"
+	"github.com/skerkour/rz"
 )
 
 func init() {
