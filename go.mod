@@ -3,7 +3,6 @@ module github.com/rs/logbench
 go 1.21
 
 require (
-	github.com/bloom42/rz-go v1.3.2
 	github.com/juju/testing v0.0.0-20190613124551-e81189438503
 	github.com/rs/zerolog v1.30.0
 	github.com/sirupsen/logrus v1.9.3
